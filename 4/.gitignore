@@ -3,8 +3,8 @@
 *.gas
 *.obj
 bootpack.nas
-bootpack.map
-bootpack.bim
-bootpack.hrb
-haribote.sys
-haribote.img
+*.map
+*.bim
+*.hrb
+*.sys
+*.img

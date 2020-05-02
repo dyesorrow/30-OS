@@ -1,5 +1,7 @@
 {
     "files.associations": {
         "*.nas": "asm"
-    }
+    },
+    "editor.tabCompletion": "off",
+    "editor.quickSuggestions": false,
 }

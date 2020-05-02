@@ -79,8 +79,8 @@ next:
         MOV     CH, 1
         CMP     CH, CYLS
         JB      readloop
-
-        MOV     [0x0ff0], CH    ;
+;阅读后，运行haribote.sys！
+        MOV     [0x0ff0], CH    ;记下IPL读了多少
         JMP     0xc200
 
 error:
