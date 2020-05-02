@@ -1,5 +1,6 @@
 ; hello-os
 ; TAB=4
+CYLS EQU 10 ;声明常熟
 
         ORG    0x7c00           ;指明程序的装载地址
 ; 以下的记述用于标准FAT12格式的软盘
@@ -31,31 +32,69 @@ entry:
         MOV     SS, AX          ;
         MOV     SP, 0x7c00
         MOV     DS, AX
+        
+;读取磁盘
+        MOV     AX, 0x0820
         MOV     ES, AX
+        MOV     CH, 0           ;柱面0
+        MOV     DH, 0           ;磁头0
+        MOV     CL, 2           ;扇区2
 
+readloop:
+        MOV     SI, 0           ;记录失败次数的寄存器
+
+retry:
+        MOV     AH, 0x02        ;AH=0x02读盘
+        MOV     AL, 1           ;1个扇区
+        MOV     BX, 0           ;
+        MOV     DL, 0x00        ;A驱动器
+        INT     0x13            ;调用磁盘BIOS
+        JNC     next            ;没有出错就跳转到next, 然后继续读取
+        ADD     SI, 1           ;SI添加1
+        CMP     SI, 5           ;比较SI与5
+        JAE     error           ;SI >= 5时跳转到 error
+        MOV     AH, 0x00
+        MOV     DL, 0x00
+        INT     0x13
+        JMP     retry
+        
+next:
+        ;将内存地址后移0x200
+        MOV     AX, ES          
+        ADD     AX, 0x0020
+        MOV     ES, AX          
+
+        ADD     CL, 1
+        CMP     CL, 18
+        ;如果CL<=18,跳转至readloop，继续读取
+        JBE     readloop        
+        ;否则扇区CL调到1，磁头DH加1
+        MOV     CL, 1
+        ADD     DH, 1
+        ;如果磁头DH <2, 跳转 readloop,继续读取
+        CMP     DH, 2
+        JB      readloop
+        ;否则，磁头DH设置位0,柱面CH设为1
+        MOV     DH, 0
+        MOV     CH, 1
+        CMP     CH, CYLS
+        JB      readloop
+
+        MOV     [0x0ff0], CH    ;
+        JMP     0xc200
+
+error:
         MOV     SI, msg
-putloop:
-        MOV     AL, [SI]
-        ADD     SI, 1           ;给SI加1
 
-        CMP     AL, 0
-        JE      fin
-
-        MOV     AH, 0x0e        ;显示一个文字
-        MOV     BX, 15          ;指定字符颜色
-        INT     0x10            ;调用显卡BIOS
-        JMP     putloop         
 fin:    
         HLT                     ;让cpu停止，等待指令
         JMP     fin             ;无线循环
+
 msg:
-        DB      0x0a, 0x0a      ;换行两次
-        DB      "hello, world"
-        DB      0x0a
+        DB      0x0a, 0x0a		; 改行を2つ
+        DB      "load error"
+        DB      0x0a			; 改行
         DB      0
-
-        RESB    0x7dfe-$        ;填写0x00直到0x7dfe, $表示现在的字数
-        DB      0x55, 0xaa      ;
-
-
+        RESB    0x7dfe-$		; 0x7dfeまでを0x00で埋める命令
+        DB      0x55, 0xaa
         
