@@ -78,7 +78,7 @@ _io_store_eflags:	; void io_store_eflags(int eflags);
 		PUSH	EAX
 		POPFD		; POP EFLAGS という意味
 		RET
-
+;指定端上线，和地址赋值给名为GDTR的48位寄存器。这个寄存器不能直接赋值，只能指定一个内存地址，从地址中读取6个字节(48位)，然后赋值给GDTR寄存器。完成这一任务的指令就是LGDT
 _load_gdtr:		; void load_gdtr(int limit, int addr);
 		MOV		AX,[ESP+4]		; limit
 		MOV		[ESP+6],AX
